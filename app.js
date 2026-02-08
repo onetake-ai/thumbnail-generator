@@ -218,6 +218,13 @@ async function generate() {
   dom.progressSection.classList.remove('hidden');
   dom.generateBtn.disabled = true;
   dom.progressList.innerHTML = '';
+  dom.titlesGrid.innerHTML = '';
+  dom.descriptionsGrid.innerHTML = '';
+  dom.thumbnailsContainer.innerHTML = '';
+  state.generatedData = null;
+
+  // Scroll progress into view
+  dom.progressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Step 1: Text generation
   addProgressItem('progress-text', 'Generating titles, prompts, and descriptions...');
@@ -237,8 +244,10 @@ async function generate() {
   renderDescriptions(state.generatedData.descriptions, platformLabels);
   dom.resultsSection.classList.remove('hidden');
 
-  // Scroll titles into view so the user sees results right away
-  dom.titlesGrid.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll titles into view after the DOM has rendered
+  requestAnimationFrame(() => {
+    dom.titlesGrid.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   // Step 3: Build thumbnail slots with loading spinners, add progress items
   dom.thumbnailsContainer.innerHTML = '';
