@@ -328,7 +328,6 @@ async function generateText(apiKey, platforms) {
         { role: 'system', content: config.system_prompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.9,
       response_format: { type: 'json_object' },
     }),
   });
