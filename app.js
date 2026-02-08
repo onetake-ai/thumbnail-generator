@@ -232,15 +232,22 @@ async function generate() {
     return;
   }
 
-  // Step 2: Render titles and descriptions immediately
+  // Step 2: Render titles and descriptions immediately and show results
   renderTitles(state.generatedData.titles);
   renderDescriptions(state.generatedData.descriptions, platformLabels);
   dom.resultsSection.classList.remove('hidden');
 
-  // Step 3: Generate thumbnails for each platform (in parallel across platforms)
-  dom.thumbnailsContainer.innerHTML = '';
+  // Scroll titles into view so the user sees results right away
+  dom.titlesGrid.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // Step 3: Build thumbnail slots with loading spinners, add progress items
+  dom.thumbnailsContainer.innerHTML = '';
   const thumbnailTasks = [];
+  let totalThumbs = 0;
+  let completedThumbs = 0;
+
+  // Add a summary progress item for thumbnails
+  addProgressItem('progress-thumbs-summary', `Generating thumbnails (0/${platforms.length * 3})...`);
 
   for (const platform of platforms) {
     const label = platformLabels[platform] || platform;
@@ -260,8 +267,9 @@ async function generate() {
 
     const grid = $(`#grid-${platform}`);
 
-    // Create 3 thumbnail slots
+    // Create 3 thumbnail slots with inline spinners
     for (let i = 0; i < 3; i++) {
+      totalThumbs++;
       const cardId = `thumb-${platform}-${i}`;
       const cardHtml = `
         <div class="thumbnail-card" id="${cardId}">
@@ -278,28 +286,41 @@ async function generate() {
       `;
       grid.insertAdjacentHTML('beforeend', cardHtml);
 
-      // Add progress indicator
-      const progressId = `progress-thumb-${platform}-${i}`;
-      addProgressItem(progressId, `${label} — Thumbnail ${i + 1}...`);
-
-      // Queue task
-      thumbnailTasks.push({ platform, label, index: i, size, cardId, progressId });
+      thumbnailTasks.push({ platform, label, index: i, size, cardId });
     }
   }
 
-  // Run all thumbnail generations in parallel
+  // Run all thumbnail generations in parallel, updating progress as each finishes
   const thumbnailPromises = thumbnailTasks.map(task =>
-    generateThumbnail(apiKey, task).catch(err => {
-      markProgressError(task.progressId, `${task.label} Thumb ${task.index + 1} failed: ${err.message}`);
-      const wrapper = $(`#${task.cardId} .thumbnail-image-wrapper`);
-      if (wrapper) {
-        wrapper.innerHTML = `<div class="thumbnail-loading" style="color: var(--color-accent)">Generation failed: ${err.message}</div>`;
-      }
-    })
+    generateThumbnail(apiKey, task)
+      .then(() => {
+        completedThumbs++;
+        updateThumbsProgress(completedThumbs, totalThumbs);
+      })
+      .catch(err => {
+        completedThumbs++;
+        updateThumbsProgress(completedThumbs, totalThumbs);
+        const wrapper = $(`#${task.cardId} .thumbnail-image-wrapper`);
+        if (wrapper) {
+          wrapper.innerHTML = `<div class="thumbnail-loading" style="color: var(--color-accent)">Generation failed: ${err.message}</div>`;
+        }
+      })
   );
 
   await Promise.all(thumbnailPromises);
   dom.generateBtn.disabled = false;
+}
+
+function updateThumbsProgress(completed, total) {
+  const el = $('#progress-thumbs-summary');
+  if (!el) return;
+  const span = el.querySelector('span');
+  if (completed >= total) {
+    span.textContent = `All ${total} thumbnails generated.`;
+    el.classList.add('done');
+  } else {
+    span.textContent = `Generating thumbnails (${completed}/${total})...`;
+  }
 }
 
 // ── Text Generation (gpt-5-mini via Responses API) ─────────────────────────
@@ -344,7 +365,7 @@ async function generateText(apiKey, platforms) {
 
 // ── Image Generation (gpt-image-1.5) ───────────────────────────────────────
 async function generateThumbnail(apiKey, task) {
-  const { platform, label, index, size, cardId, progressId } = task;
+  const { platform, label, index, size, cardId } = task;
   const config = state.imagePromptConfig;
   const colors = getColorPalette();
   const data = state.generatedData;
@@ -404,8 +425,6 @@ async function generateThumbnail(apiKey, task) {
   `;
   downloadBtn.addEventListener('click', () => downloadImage(imageUrl, imageData.b64_json, `${platform}-thumb-${index + 1}.png`));
   actions.appendChild(downloadBtn);
-
-  markProgressDone(progressId);
 }
 
 // ── Download Helper ─────────────────────────────────────────────────────────
