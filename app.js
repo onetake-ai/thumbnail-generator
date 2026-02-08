@@ -21,6 +21,7 @@ const dom = {
   toggleKeyVis:       $('#toggle-key-visibility'),
   videoTitle:         $('#video-title'),
   videoTranscript:    $('#video-transcript'),
+  ctaLink:            $('#cta-link'),
   imageUploadArea:    $('#image-upload-area'),
   imageInput:         $('#image-input'),
   uploadPlaceholder:  $('#upload-placeholder'),
@@ -33,6 +34,13 @@ const dom = {
   titlesGrid:         $('#titles-grid'),
   thumbnailsContainer:$('#thumbnails-container'),
   descriptionsGrid:   $('#descriptions-grid'),
+};
+
+// Aspect ratio CSS values keyed by image size
+const ASPECT_RATIOS = {
+  '1536x1024': '3/2',
+  '1024x1536': '2/3',
+  '1024x1024': '1/1',
 };
 
 // ── Init ────────────────────────────────────────────────────────────────────
@@ -280,9 +288,10 @@ async function generate() {
     for (let i = 0; i < 3; i++) {
       totalThumbs++;
       const cardId = `thumb-${platform}-${i}`;
+      const ratio = ASPECT_RATIOS[size] || '3/2';
       const cardHtml = `
         <div class="thumbnail-card" id="${cardId}">
-          <div class="thumbnail-image-wrapper">
+          <div class="thumbnail-image-wrapper" data-ratio="${ratio}">
             <div class="thumbnail-loading">
               <div class="progress-spinner"></div>
               <div>Generating variant ${i + 1}...</div>
@@ -351,6 +360,7 @@ async function generateText(apiKey, platforms) {
   const userPrompt = config.user_prompt_template
     .replace('{{title}}', dom.videoTitle.value.trim())
     .replace('{{transcript}}', dom.videoTranscript.value.trim() || '(not provided)')
+    .replace('{{cta_link}}', dom.ctaLink.value.trim() || '(not provided)')
     .replace('{{platforms}}', platformNames)
     .replace('{{language}}', dom.language.value)
     .replace('{{color_palette}}', formatColorPaletteForPrompt(colors));

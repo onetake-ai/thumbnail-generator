@@ -598,8 +598,11 @@ input[type="color"]::-webkit-color-swatch {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
 }
+
+.thumbnail-image-wrapper[data-ratio="3/2"] { aspect-ratio: 3 / 2; }
+.thumbnail-image-wrapper[data-ratio="2/3"] { aspect-ratio: 2 / 3; }
+.thumbnail-image-wrapper[data-ratio="1/1"] { aspect-ratio: 1 / 1; }
 
 .thumbnail-image-wrapper img {
   width: 100%;
