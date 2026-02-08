@@ -359,7 +359,23 @@ async function generateText(apiKey, platforms) {
   }
 
   const data = await response.json();
-  const content = data.output_text;
+
+  // Extract text from the Responses API output
+  let content = data.output_text;
+  if (!content) {
+    // Fallback: walk the output array to find the text
+    const msg = data.output?.find(o => o.type === 'message');
+    const textBlock = msg?.content?.find(c => c.type === 'output_text');
+    content = textBlock?.text;
+  }
+  if (!content) {
+    console.error('Unexpected Responses API structure:', JSON.stringify(data, null, 2));
+    throw new Error('Could not extract text from API response.');
+  }
+
+  // Strip markdown code fences if present (e.g. ```json ... ```)
+  content = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
   return JSON.parse(content);
 }
 
