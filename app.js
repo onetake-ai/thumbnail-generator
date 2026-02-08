@@ -302,7 +302,7 @@ async function generate() {
   dom.generateBtn.disabled = false;
 }
 
-// ── Text Generation (GPT-5.1-mini) ─────────────────────────────────────────
+// ── Text Generation (gpt-5-mini via Responses API) ─────────────────────────
 async function generateText(apiKey, platforms) {
   const config = state.textPromptConfig;
   const platformLabels = state.imagePromptConfig.platform_labels;
@@ -316,7 +316,7 @@ async function generateText(apiKey, platforms) {
     .replace('{{language}}', dom.language.value)
     .replace('{{color_palette}}', formatColorPaletteForPrompt(colors));
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -324,11 +324,11 @@ async function generateText(apiKey, platforms) {
     },
     body: JSON.stringify({
       model: config.model,
-      messages: [
-        { role: 'system', content: config.system_prompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: 'json_object' },
+      instructions: config.system_prompt,
+      input: userPrompt,
+      text: {
+        format: { type: 'json_object' },
+      },
     }),
   });
 
@@ -338,7 +338,7 @@ async function generateText(apiKey, platforms) {
   }
 
   const data = await response.json();
-  const content = data.choices[0].message.content;
+  const content = data.output_text;
   return JSON.parse(content);
 }
 
