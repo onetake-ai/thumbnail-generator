@@ -1,0 +1,23 @@
+{
+  "model": "gpt-image-1.5",
+  "quality": "high",
+  "prompt_template": "Create a professional social media thumbnail image for {{platform}}.\n\n{{thumbnail_prompt}}\n\nIMPORTANT TEXT OVERLAY: Render the following words as very large, bold, dominant text on the thumbnail: \"{{thumbnail_text}}\"\nThe text must be clearly readable, use a bold sans-serif font (like Montserrat Black), and be the most prominent visual element alongside any person featured.\n\nColor palette to use:\n- Primary: {{primary_color}} (golden yellow-orange)\n- Dark: {{dark_color}} (deep purple)\n- Light background: {{light_color}} (off-white)\n- Accent: {{accent_color}} (empowering pink-red)\n- Soft accent: {{soft_accent_color}} (muted pink)\n\nStyle guidelines:\n- High contrast, eye-catching composition\n- Professional quality suitable for {{platform}}\n- The text overlay must be large and readable even at small sizes\n- If a person is featured, their expression should convey strong emotion matching the content\n- Use the provided color palette for the design elements, text colors, and background accents\n- Clean, modern design with strong visual hierarchy",
+  "size_map": {
+    "youtube": "1536x1024",
+    "yt_shorts": "1024x1536",
+    "instagram": "1024x1024",
+    "ig_reels": "1024x1536",
+    "linkedin": "1536x1024",
+    "x_twitter": "1536x1024",
+    "tiktok": "1024x1536"
+  },
+  "platform_labels": {
+    "youtube": "YouTube",
+    "yt_shorts": "YouTube Shorts",
+    "instagram": "Instagram",
+    "ig_reels": "Instagram Reels",
+    "linkedin": "LinkedIn",
+    "x_twitter": "X / Twitter",
+    "tiktok": "TikTok"
+  }
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Media Variation Tool — OneTake AI</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=montserrat:400,500,600,700,800,900">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <img src="https://cdn.prod.website-files.com/64ede1cef2e95d85ddeadb1b/6752cc7dcbedac2dfdaa5cb2_logo.svg" alt="OneTake AI" class="logo" width="140" height="38">
+      <h1>Social Media Variation Tool</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- API Key Section -->
+    <section class="card" id="api-section">
+      <h2>OpenAI API Key</h2>
+      <div class="api-key-row">
+        <div class="input-group api-key-group">
+          <input type="password" id="api-key" placeholder="sk-..." autocomplete="off">
+          <button type="button" id="toggle-key-visibility" class="btn-icon" title="Toggle visibility">
+            <svg class="icon-eye" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <label class="checkbox-label">
+          <input type="checkbox" id="save-key"> Save to local storage
+        </label>
+      </div>
+    </section>
+
+    <!-- Input Form -->
+    <section class="card" id="input-section">
+      <h2>Video Information</h2>
+
+      <div class="form-grid">
+        <div class="input-group full-width">
+          <label for="video-title">Video Title <span class="required">*</span></label>
+          <input type="text" id="video-title" placeholder="Enter the current title of your video" required>
+        </div>
+
+        <div class="input-group full-width">
+          <label for="video-transcript">Transcript / Description <span class="optional">(optional)</span></label>
+          <textarea id="video-transcript" rows="4" placeholder="Paste the video transcript or a brief description of its content..."></textarea>
+        </div>
+
+        <div class="input-group full-width">
+          <label>Screenshots / Images <span class="optional">(up to 3)</span></label>
+          <div class="image-upload-area" id="image-upload-area">
+            <div class="upload-placeholder" id="upload-placeholder">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <p>Drag & drop images here or <span class="upload-link">browse</span></p>
+              <p class="upload-hint">Preferably the face of the presenter(s). Up to 3 images.</p>
+            </div>
+            <input type="file" id="image-input" multiple accept="image/*" class="hidden">
+            <div class="image-previews" id="image-previews"></div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Platforms <span class="required">*</span></label>
+          <div class="platform-grid">
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="youtube">
+              <span class="platform-chip">YouTube</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="yt_shorts">
+              <span class="platform-chip">YT Shorts</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="instagram">
+              <span class="platform-chip">Instagram</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="ig_reels">
+              <span class="platform-chip">IG Reels</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="linkedin">
+              <span class="platform-chip">LinkedIn</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="x_twitter">
+              <span class="platform-chip">X / Twitter</span>
+            </label>
+            <label class="platform-option">
+              <input type="checkbox" name="platform" value="tiktok">
+              <span class="platform-chip">TikTok</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="language">Language <span class="required">*</span></label>
+          <select id="language">
+            <option value="French">Fran&ccedil;ais</option>
+            <option value="English">English</option>
+            <option value="Spanish">Espa&ntilde;ol</option>
+            <option value="Portuguese">Portugu&ecirc;s</option>
+            <option value="German">Deutsch</option>
+            <option value="Italian">Italiano</option>
+            <option value="Dutch">Nederlands</option>
+            <option value="Japanese">日本語</option>
+            <option value="Chinese">中文</option>
+            <option value="Korean">한국어</option>
+            <option value="Arabic">العربية</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Color Palette -->
+      <div class="color-palette-section">
+        <h3>Color Palette</h3>
+        <div class="color-grid">
+          <div class="color-item">
+            <label for="color-primary">Primary</label>
+            <div class="color-input-row">
+              <input type="color" id="color-primary" value="#E3AE28">
+              <input type="text" class="color-hex" data-for="color-primary" value="#E3AE28">
+            </div>
+          </div>
+          <div class="color-item">
+            <label for="color-dark">Dark</label>
+            <div class="color-input-row">
+              <input type="color" id="color-dark" value="#241826">
+              <input type="text" class="color-hex" data-for="color-dark" value="#241826">
+            </div>
+          </div>
+          <div class="color-item">
+            <label for="color-light">Light</label>
+            <div class="color-input-row">
+              <input type="color" id="color-light" value="#F8F7F7">
+              <input type="text" class="color-hex" data-for="color-light" value="#F8F7F7">
+            </div>
+          </div>
+          <div class="color-item">
+            <label for="color-accent">Accent</label>
+            <div class="color-input-row">
+              <input type="color" id="color-accent" value="#D33E5D">
+              <input type="text" class="color-hex" data-for="color-accent" value="#D33E5D">
+            </div>
+          </div>
+          <div class="color-item">
+            <label for="color-soft-accent">Soft Accent</label>
+            <div class="color-input-row">
+              <input type="color" id="color-soft-accent" value="#D1B0B3">
+              <input type="text" class="color-hex" data-for="color-soft-accent" value="#D1B0B3">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" id="generate-btn" class="btn-primary">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate Variations
+      </button>
+    </section>
+
+    <!-- Progress Section -->
+    <section class="card hidden" id="progress-section">
+      <h2>Generating...</h2>
+      <div class="progress-list" id="progress-list">
+        <div class="progress-item" id="progress-text">
+          <div class="progress-spinner"></div>
+          <span>Generating titles and prompts...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="hidden" id="results-section">
+      <!-- Titles -->
+      <div class="card">
+        <h2>Title Variations</h2>
+        <div class="titles-grid" id="titles-grid"></div>
+      </div>
+
+      <!-- Thumbnails per platform -->
+      <div id="thumbnails-container"></div>
+
+      <!-- Descriptions -->
+      <div class="card">
+        <h2>Descriptions</h2>
+        <div class="descriptions-grid" id="descriptions-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Social Media Variation Tool v1.0 &mdash; Powered by <a href="https://onetake.ai" target="_blank">OneTake AI</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
