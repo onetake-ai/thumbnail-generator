@@ -409,28 +409,37 @@ function buildImagePrompt(task) {
 async function generateThumbnail(apiKey, task) {
   const { platform, label, index, size, cardId } = task;
   const config = state.imagePromptConfig;
-
   const prompt = buildImagePrompt(task);
+  const hasImages = state.uploadedImages.length > 0;
 
-  // Build JSON body with base64 images
-  const body = {
-    model: config.model,
-    prompt: prompt,
-    n: 1,
-    size: size,
-    quality: config.quality,
-  };
+  let endpoint, body;
 
-  // Attach reference images as base64
-  if (state.uploadedImages.length > 0) {
-    body.image = state.uploadedImages.map(img => {
-      // dataUrl is "data:image/png;base64,XXXXX" — extract the base64 part
-      const base64 = img.dataUrl.split(',')[1];
-      return base64;
-    });
+  if (hasImages) {
+    // Use the edits endpoint when reference images are provided
+    endpoint = 'https://api.openai.com/v1/images/edits';
+    body = {
+      model: config.model,
+      prompt: prompt,
+      n: 1,
+      size: size,
+      quality: config.quality,
+      images: state.uploadedImages.map(img => ({
+        image_url: img.dataUrl,
+      })),
+    };
+  } else {
+    // Use the generations endpoint when no reference images
+    endpoint = 'https://api.openai.com/v1/images/generations';
+    body = {
+      model: config.model,
+      prompt: prompt,
+      n: 1,
+      size: size,
+      quality: config.quality,
+    };
   }
 
-  const response = await fetch('https://api.openai.com/v1/images/generations', {
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -446,7 +455,9 @@ async function generateThumbnail(apiKey, task) {
 
   const result = await response.json();
   const imageData = result.data[0];
-  const imageUrl = imageData.url || `data:image/png;base64,${imageData.b64_json}`;
+  // GPT image models always return b64_json
+  const b64 = imageData.b64_json;
+  const imageUrl = `data:image/png;base64,${b64}`;
 
   // Update the thumbnail card
   const wrapper = $(`#${cardId} .thumbnail-image-wrapper`);
@@ -460,7 +471,7 @@ async function generateThumbnail(apiKey, task) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Download
   `;
-  downloadBtn.addEventListener('click', () => downloadImage(imageUrl, imageData.b64_json, `${platform}-thumb-${index + 1}.png`));
+  downloadBtn.addEventListener('click', () => downloadImage(null, b64, `${platform}-thumb-${index + 1}.png`));
   actions.appendChild(downloadBtn);
 }
 
