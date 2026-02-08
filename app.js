@@ -281,10 +281,19 @@ async function generate() {
           </div>
           <div class="thumbnail-actions">
             <span class="thumbnail-label">Variant ${i + 1}</span>
+            <button class="btn-view-prompt" title="View prompt" data-platform="${platform}" data-index="${i}">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
         </div>
       `;
       grid.insertAdjacentHTML('beforeend', cardHtml);
+
+      // Bind prompt view button
+      $(`#${cardId} .btn-view-prompt`).addEventListener('click', () => {
+        const prompt = buildImagePrompt({ platform, label, index: i, size, cardId });
+        showPromptModal(label, i + 1, prompt);
+      });
 
       thumbnailTasks.push({ platform, label, index: i, size, cardId });
     }
@@ -380,14 +389,13 @@ async function generateText(apiKey, platforms) {
 }
 
 // ── Image Generation (gpt-image-1.5) ───────────────────────────────────────
-async function generateThumbnail(apiKey, task) {
-  const { platform, label, index, size, cardId } = task;
+function buildImagePrompt(task) {
+  const { label, index } = task;
   const config = state.imagePromptConfig;
   const colors = getColorPalette();
   const data = state.generatedData;
 
-  // Build the image generation prompt from the template
-  const prompt = config.prompt_template
+  return config.prompt_template
     .replace(/\{\{platform\}\}/g, label)
     .replace('{{thumbnail_prompt}}', data.thumbnail_prompts[index])
     .replace('{{thumbnail_text}}', data.thumbnail_texts[index])
@@ -396,26 +404,39 @@ async function generateThumbnail(apiKey, task) {
     .replace('{{light_color}}', colors.light)
     .replace('{{accent_color}}', colors.accent)
     .replace('{{soft_accent_color}}', colors.soft_accent);
+}
 
-  // Build form data for the API call
-  const formData = new FormData();
-  formData.append('model', config.model);
-  formData.append('prompt', prompt);
-  formData.append('n', '1');
-  formData.append('size', size);
-  formData.append('quality', config.quality);
+async function generateThumbnail(apiKey, task) {
+  const { platform, label, index, size, cardId } = task;
+  const config = state.imagePromptConfig;
 
-  // Attach reference images
-  state.uploadedImages.forEach((img, i) => {
-    formData.append('image[]', img.file);
-  });
+  const prompt = buildImagePrompt(task);
+
+  // Build JSON body with base64 images
+  const body = {
+    model: config.model,
+    prompt: prompt,
+    n: 1,
+    size: size,
+    quality: config.quality,
+  };
+
+  // Attach reference images as base64
+  if (state.uploadedImages.length > 0) {
+    body.image = state.uploadedImages.map(img => {
+      // dataUrl is "data:image/png;base64,XXXXX" — extract the base64 part
+      const base64 = img.dataUrl.split(',')[1];
+      return base64;
+    });
+  }
 
   const response = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
-    body: formData,
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -541,6 +562,38 @@ function markProgressError(id, text) {
     el.classList.add('error');
     el.querySelector('span').textContent = text;
   }
+}
+
+// ── Prompt Modal ────────────────────────────────────────────────────────────
+function showPromptModal(platformLabel, variantNum, prompt) {
+  // Remove existing modal
+  const existing = document.querySelector('.prompt-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'prompt-modal-overlay';
+  overlay.innerHTML = `
+    <div class="prompt-modal">
+      <div class="prompt-modal-header">
+        <h3>${escapeHtml(platformLabel)} — Variant ${variantNum} Prompt</h3>
+        <button class="prompt-modal-close" title="Close">&times;</button>
+      </div>
+      <pre class="prompt-modal-body">${escapeHtml(prompt)}</pre>
+      <div class="prompt-modal-actions">
+        <button class="btn-copy" data-text="${escapeAttr(prompt)}">Copy Prompt</button>
+      </div>
+    </div>
+  `;
+
+  // Close on overlay click or close button
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.closest('.prompt-modal-close')) {
+      overlay.remove();
+    }
+  });
+  overlay.querySelector('.btn-copy').addEventListener('click', handleCopy);
+
+  document.body.appendChild(overlay);
 }
 
 // ── Toast Notifications ─────────────────────────────────────────────────────
