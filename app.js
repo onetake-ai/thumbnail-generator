@@ -442,6 +442,8 @@ async function generateThumbnail(apiKey, task) {
       n: 1,
       size: size,
       quality: config.quality,
+      output_format: config.output_format || 'jpeg',
+      output_compression: config.output_compression ?? 85,
       images: state.uploadedImages.map(img => ({
         image_url: img.dataUrl,
       })),
@@ -455,6 +457,8 @@ async function generateThumbnail(apiKey, task) {
       n: 1,
       size: size,
       quality: config.quality,
+      output_format: config.output_format || 'jpeg',
+      output_compression: config.output_compression ?? 85,
     };
   }
 
@@ -474,9 +478,11 @@ async function generateThumbnail(apiKey, task) {
 
   const result = await response.json();
   const imageData = result.data[0];
-  // GPT image models always return b64_json
   const b64 = imageData.b64_json;
-  const imageUrl = `data:image/png;base64,${b64}`;
+  const fmt = config.output_format || 'jpeg';
+  const mime = fmt === 'png' ? 'image/png' : `image/${fmt}`;
+  const ext = fmt === 'jpeg' ? 'jpg' : fmt;
+  const imageUrl = `data:${mime};base64,${b64}`;
 
   // Update the thumbnail card
   const wrapper = $(`#${cardId} .thumbnail-image-wrapper`);
@@ -490,23 +496,17 @@ async function generateThumbnail(apiKey, task) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Download
   `;
-  downloadBtn.addEventListener('click', () => downloadImage(null, b64, `${platform}-thumb-${index + 1}.png`));
+  downloadBtn.addEventListener('click', () => downloadImage(b64, mime, `${platform}-thumb-${index + 1}.${ext}`));
   actions.appendChild(downloadBtn);
 }
 
 // ── Download Helper ─────────────────────────────────────────────────────────
-async function downloadImage(url, b64, filename) {
+function downloadImage(b64, mimeType, filename) {
   try {
-    let blob;
-    if (b64) {
-      const byteChars = atob(b64);
-      const byteArray = new Uint8Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
-      blob = new Blob([byteArray], { type: 'image/png' });
-    } else {
-      const res = await fetch(url);
-      blob = await res.blob();
-    }
+    const byteChars = atob(b64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([byteArray], { type: mimeType });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
